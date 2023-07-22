@@ -1,0 +1,174 @@
+<html>
+  <head>
+    <title>Conniptions</title>
+
+<style>
+:root {
+  --tile-width: 100px;
+  --tile-margin: 5px;
+  font-family: helvetica;
+}
+.tile-container {
+  width: calc((var(--tile-width) + var(--tile-margin) * 2) * 4);
+}
+.tile, .group {
+  text-transform: uppercase;
+  margin: var(--tile-margin);
+  height: var(--tile-width);
+  border-radius: var(--tile-margin);
+  position: relative;
+  display: inline-block;
+  text-align: center;
+  user-select: none; /* standard syntax */
+  -webkit-user-select: none; /* webkit (safari, chrome) browsers */
+  -moz-user-select: none; /* mozilla browsers */
+  -khtml-user-select: none; /* webkit (konqueror) browsers */
+  -ms-user-select: none; /* IE10+ */
+}
+
+.group {
+  width: calc(100% - var(--tile-margin) * 2);
+  background: lightblue;
+}
+.tile {
+  font-weight: bold;
+  width: var(--tile-width);
+  background: #efefe6;
+  color: black;
+}
+.tile-container > div > span {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-50%);
+}
+.tile.selected {
+  color: white;
+  background-color: #5a594e;
+}
+.mistake-marker {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  background: #666;
+  border-radius: 10px;
+}
+</style>
+  </head>
+
+  <body>
+    <h1>Conniptions</h1>
+    <p>Create four groups of four!</p>
+    <div class='tile-container' id='completed-rows'></div>
+    <div class='tile-container' id='remaining-tiles'></div>
+    <br>
+    <div id='mistakes-remaining'>
+      Mistakes remaining:
+      <div class='mistake-marker'></div>
+      <div class='mistake-marker'></div>
+      <div class='mistake-marker'></div>
+      <div class='mistake-marker'></div>
+    </div>
+  </body>
+
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js" integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" crossorigin="anonymous"></script>
+
+  <script>
+    function shuffle(array) {
+      let currentIndex = array.length,  randomIndex;
+
+      // While there remain elements to shuffle.
+      while (currentIndex != 0) {
+
+        // Pick a remaining element.
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
+
+        // And swap it with the current element.
+        [array[currentIndex], array[randomIndex]] = [
+          array[randomIndex], array[currentIndex]];
+      }
+
+      return array;
+    }
+
+    const groups = [
+        { category: 'fish',
+          options: ['perch', 'goldfish', 'pike', 'smelt', 'bass', 'bleak', 'char'] },
+
+        { category: 'melee weapons',
+          options: ['pike', 'bow', 'club', 'mace', 'bill', 'blackjack', 'lance', 'hammer'] },
+
+        { category: 'instruments',
+          options: ['bass', 'horn', 'fiddle', 'recorder', 'triangle', 'harp'] },
+
+        { category: 'shapes',
+          options: ['triangle', 'circle', 'square', 'pentagon', 'kite', 'crescent'] },
+    ];
+
+    $(document).ready(() => {
+
+      const $tiles = $('#remaining-tiles');
+      const $done = $('#completed-rows');
+
+      const used = new Set();
+      const tiles = [];
+
+      shuffle(groups);
+
+      for (let group of groups.slice(0,4)) {
+            shuffle(group.options);
+
+            let i = 0;
+            for (let option of group.options) {
+                  if (used.has(option)) continue;
+                  tiles.push(`<div class='tile' data-group='${group.category}'><span>${option}</span></div>`);
+                  i += 1;
+                  used.add(option);
+                  if (i >= 4) break;
+
+            }
+      }
+
+      shuffle(tiles);
+
+      for (let tile of tiles) {
+        $tiles.append(tile);
+      }
+
+      $(document).on('click', '.tile', (ev) => {
+            const $tile = $(ev.currentTarget);
+            if ($tile.hasClass('selected')) {
+                $tile.removeClass('selected');
+                return;
+            }
+            $tile.addClass('selected');
+
+            selected = Array.from($('.tile.selected'));
+
+            if (selected.length >= 4) {
+              const groups = new Set();
+              for (let el of selected) groups.add($(el).data('group'));
+              if (Array.from(groups).length == 1) {
+                  $done.append(`
+                    <div class='group'>
+                      <span>
+                        <strong>${$(selected[0]).data('group')}</strong>
+                        <br>
+                       <span>${selected.map(el => $(el).text()).join(', ')}</span>
+                      </span>
+                    </div>
+                  `);
+                  for (let el of selected) {
+                    $(el).remove();
+                  }
+              } else {
+                  $('.mistake-marker:first-child').remove();
+              }
+              $('.tile').removeClass('selected');
+            }
+      });
+
+    });
+  </script>
+</html>
