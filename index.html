@@ -216,9 +216,9 @@ button:active {
 
     $(document).ready(() => {
       // Seed randomness
-      const today = new Date();
-      today.setUTCHours(0,0,0,0);
-      Math.seedrandom('...........' + today.toString());
+      const d = new Date();
+      //Math.seedrandom(`..${d.getDate()}-${d.getFullYear()}-${d.getMonth()}`);
+      Math.seedrandom(`.....${d.getDate()}-${d.getFullYear()}-${d.getMonth()}`);
 
       const $tiles = $('#remaining-tiles');
       const $done = $('#completed-rows');
@@ -251,8 +251,8 @@ button:active {
           i += 1;
         }
 
-        if (today.toString() == 'Sat Jul 22 2023 20:00:00 GMT-0400 (Eastern Daylight Time)') {
-            selectedGroups = groups.filter(g => ['friends', 'arizona cities', 'fantastical fauna', 'baby animals'].includes(g.category));
+        if ((d.getDate() == 23) && (d.getFullYear() == 2023) && (d.getMonth() == 6)) {
+          selectedGroups = groups.filter(g => ['friends', 'arizona cities', 'fantastical fauna', 'baby animals'].includes(g.category));
         }
 
         for (let group of selectedGroups) {
