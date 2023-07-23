@@ -162,9 +162,6 @@ button:active {
         { category: 'tools',
           options: ['saw', 'drill', 'hammer', 'wrench', 'screw driver', 'file', 'gimlet'] },
 
-        { category: 'potty language',
-          options: ['john', 'head', 'throne', 'loo', 'privy', 'can'] },
-
         { category: 'cocktails',
           options: ['screw driver', 'manhattan', 'sidecar', 'sazerac', 'zombie', 'gimlet'] },
 
@@ -221,7 +218,7 @@ button:active {
       // Seed randomness
       const today = new Date();
       today.setUTCHours(0,0,0,0);
-      Math.seedrandom('today is ' + today.toString());
+      Math.seedrandom('...........' + today.toString());
 
       const $tiles = $('#remaining-tiles');
       const $done = $('#completed-rows');
@@ -254,6 +251,10 @@ button:active {
           i += 1;
         }
 
+        if (today.toString() == 'Sat Jul 22 2023 20:00:00 GMT-0400 (Eastern Daylight Time)') {
+            selectedGroups = groups.filter(g => ['friends', 'arizona cities', 'fantastical fauna', 'baby animals'].includes(g.category));
+        }
+
         for (let group of selectedGroups) {
               shuffle(group.options);
 
@@ -270,6 +271,7 @@ button:active {
       }
 
       selectGroups();
+
 
       while (tiles.length < 16) {
         selectGroups();
