@@ -148,15 +148,82 @@ button:active {
 
         { category: 'shapes',
           options: ['triangle', 'circle', 'square', 'pentagon', 'kite', 'crescent'] },
+
+        { category: 'sensed',
+          options: ['saw', 'smelt', 'felt', 'heard', 'tasted'] },
+
+        { category: 'fabrics',
+          options: ['felt', 'cotton', 'denim', 'tweed', 'flannel', 'calico'] },
+
+        { category: '_ candy',
+          options: ['cotton', 'rock', 'hard', 'nose', 'john'] },
+
+        { category: 'cat coat colors',
+          options: ['calico', 'tabby', 'tuxedo', 'tortoise shell'] },
+
+        { category: 'tools',
+          options: ['saw', 'drill', 'hammer', 'wrench', 'screw driver', 'file', 'gimlet'] },
+
+        { category: 'potty language',
+          options: ['john', 'head', 'throne', 'loo', 'privy', 'can'] },
+
+        { category: 'cocktails',
+          options: ['screw driver', 'manhattan', 'sidecar', 'sazerac', 'zombie', 'gimlet'] },
+
+        { category: 'fantastical fauna',
+          options: ['zombie', 'phoenix', 'sphinx', 'gnome', 'nymph'] },
+
+        { category: 'arizona cities',
+          options: ['phoenix', 'mesa', 'flagstaff', 'tombstone', 'chandler'] },
+
+        { category: 'friends',
+          options: ['chandler', 'joey', 'rachel', 'phoebe', 'ross', 'monica'] },
+
+        { category: 'baby animals',
+          options: ['joey', 'kid', 'calf', 'chick', 'kit', 'gosling', 'nymph'] },
+
+        { category: 'birbs',
+          options: ['phoebe', 'swallow', 'wren', 'tit', 'bunting', 'dove'] },
+
     ];
+
+    const conniptions = {};
+
+    for (let i = 0; i < groups.length - 1; i++) {
+        const set = new Set(groups[i].options);
+        for (let j = i+1; j < groups.length; j++) {
+            if (groups[j].options.filter(el => set.has(el)).length) {
+                const c1 = groups[i].category;
+                const c2 = groups[j].category;
+                if (!conniptions[c1]) conniptions[c1] = [];
+                if (!conniptions[c2]) conniptions[c2] = [];
+                conniptions[c1].push(c2);
+                conniptions[c2].push(c1);
+            }
+        }
+    }
+
+    const conniptionsFor = (category) => {
+        return groups.filter(g => conniptions[category].includes(g.category));
+    }
+
+    const maybeSelectRelatedGroup = (group, prob) => {
+        related = [].concat(conniptionsFor(group.category));
+        if (!related.length) return null;
+        shuffle(related);
+        return (Math.random() < (prob || 0.75)) ? related[0] : null;
+    }
+
+    window.conniptions = conniptions;
+    window.conniptionsFor = conniptionsFor;
 
     const guesses = [];
 
     $(document).ready(() => {
       // Seed randomness
       const today = new Date();
-      today.setUTCHours(0,0,0,0)
-      Math.seedrandom(today.toString());
+      today.setUTCHours(0,0,0,0);
+      Math.seedrandom('today is ' + today.toString());
 
       const $tiles = $('#remaining-tiles');
       const $done = $('#completed-rows');
@@ -165,22 +232,49 @@ button:active {
       const $submit = $('#submit');
 
       const used = new Set();
-      const tiles = [];
 
-      shuffle(groups);
+      let tiles;
 
-      for (let group of groups.slice(0,4)) {
-            shuffle(group.options);
+      selectGroups = () => {
+        tiles = [];
 
-            let i = 0;
-            for (let option of group.options) {
-                  if (used.has(option)) continue;
-                  tiles.push(`<div class='tile' data-group='${group.category}'><span>${option}</span></div>`);
-                  i += 1;
-                  used.add(option);
-                  if (i >= 4) break;
+        shuffle(groups);
 
-            }
+        let i = 0;
+
+        let selectedGroups = [groups[i]];
+
+        while (selectedGroups.length < 4) {
+          shuffle(selectedGroups);
+
+          newGroup = maybeSelectRelatedGroup(selectedGroups[selectedGroups.length - 1]) || groups[i];
+
+          if (selectedGroups.filter(g => g.category == newGroup.category).length == 0) {
+            selectedGroups.push(newGroup);
+          }
+
+          i += 1;
+        }
+
+        for (let group of selectedGroups) {
+              shuffle(group.options);
+
+              let i = 0;
+              for (let option of group.options) {
+                    if (used.has(option)) continue;
+                    tiles.push(`<div class='tile' data-group='${group.category}'><span>${option}</span></div>`);
+                    i += 1;
+                    used.add(option);
+                    if (i >= 4) break;
+
+              }
+          }
+      }
+
+      selectGroups();
+
+      while (tiles.length < 16) {
+        selectGroups();
       }
 
       const shuffleTiles = () => {
