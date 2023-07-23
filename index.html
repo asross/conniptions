@@ -25,11 +25,21 @@
   -khtml-user-select: none; /* webkit (konqueror) browsers */
   -ms-user-select: none; /* IE10+ */
 }
-
 .group {
   width: calc(100% - var(--tile-margin) * 2);
   background: lightblue;
 }
+/*
+.group:nth-child(2) {
+  background: gold;
+}
+.group:nth-child(3) {
+  background: greenyellow;
+}
+.group:nth-child(4) {
+  background: mediumpurple;
+}
+*/
 .tile {
   font-weight: bold;
   width: var(--tile-width);
@@ -53,6 +63,30 @@
   background: #666;
   border-radius: 10px;
 }
+button {
+  border-radius: 32px;
+  height: 3em;
+  min-width: 5.5em;
+  padding-left: 20px;
+  padding-right: 20px;
+  justify-content: center;
+  border: 1px solid;
+  background: white;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: 600;
+}
+button:disabled {
+  color: #7f7f7f;
+  cursor: not-allowed;
+}
+#submit:not(:disabled) {
+  background: black;
+  color: white;
+}
+button:active {
+  background: #e2e2e2;
+}
 </style>
   </head>
 
@@ -69,9 +103,19 @@
       <div class='mistake-marker'></div>
       <div class='mistake-marker'></div>
     </div>
+    <br>
+    <div id='buttons'>
+      <button id='shuffle' href='javascript:void(0)'>Shuffle</button>
+      <button id='deselect' href='javascript:void(0)'>Deselect All</button>
+      <button id='submit' disabled href='javascript:void(0)'>Submit</button>
+    </div>
   </body>
 
+  <!-- A query for J -->
   <script src="https://code.jquery.com/jquery-3.7.0.min.js" integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" crossorigin="anonymous"></script>
+
+  <!-- Thanks, David! -->
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/seedrandom/2.3.10/seedrandom.min.js'></script>
 
   <script>
     function shuffle(array) {
@@ -106,10 +150,19 @@
           options: ['triangle', 'circle', 'square', 'pentagon', 'kite', 'crescent'] },
     ];
 
+    const guesses = [];
+
     $(document).ready(() => {
+      // Seed randomness
+      const today = new Date();
+      today.setUTCHours(0,0,0,0)
+      Math.seedrandom(today.toString());
 
       const $tiles = $('#remaining-tiles');
       const $done = $('#completed-rows');
+      const $shuffle = $('#shuffle');
+      const $deselect = $('#deselect');
+      const $submit = $('#submit');
 
       const used = new Set();
       const tiles = [];
@@ -130,43 +183,66 @@
             }
       }
 
-      shuffle(tiles);
+      const shuffleTiles = () => {
+        $tiles.html('');
 
-      for (let tile of tiles) {
-        $tiles.append(tile);
+        shuffle(tiles);
+
+        for (let tile of tiles) {
+          $tiles.append(tile);
+        }
       }
+
+      shuffleTiles();
+
+      $shuffle.click(shuffleTiles);
+
+      const deselectTiles = () => {
+          $('.tile').removeClass('selected');
+          $submit.prop('disabled', true);
+      }
+
+      const submitTiles = () => {
+          selected = Array.from($('.tile.selected'));
+          guesses.push(selected);
+          if (selected.length >= 4) {
+            const groups = new Set();
+            for (let el of selected) groups.add($(el).data('group'));
+            if (Array.from(groups).length == 1) {
+                $done.append(`
+                  <div class='group'>
+                    <span>
+                      <strong>${$(selected[0]).data('group')}</strong>
+                      <br>
+                     <span>${selected.map(el => $(el).text()).join(', ')}</span>
+                    </span>
+                  </div>
+                `);
+                for (let el of selected) {
+                  $(el).remove();
+                }
+            } else {
+                $('.mistake-marker:first-child').remove();
+            }
+            $('.tile').removeClass('selected');
+         }
+        deselectTiles();
+      }
+
+      const numSelected = () => $('.tile.selected').length;
+
+      $submit.click(submitTiles);
+
+      $deselect.click(deselectTiles);
 
       $(document).on('click', '.tile', (ev) => {
             const $tile = $(ev.currentTarget);
             if ($tile.hasClass('selected')) {
                 $tile.removeClass('selected');
-                return;
+            } else if (numSelected() < 4) {
+                $tile.addClass('selected');
             }
-            $tile.addClass('selected');
-
-            selected = Array.from($('.tile.selected'));
-
-            if (selected.length >= 4) {
-              const groups = new Set();
-              for (let el of selected) groups.add($(el).data('group'));
-              if (Array.from(groups).length == 1) {
-                  $done.append(`
-                    <div class='group'>
-                      <span>
-                        <strong>${$(selected[0]).data('group')}</strong>
-                        <br>
-                       <span>${selected.map(el => $(el).text()).join(', ')}</span>
-                      </span>
-                    </div>
-                  `);
-                  for (let el of selected) {
-                    $(el).remove();
-                  }
-              } else {
-                  $('.mistake-marker:first-child').remove();
-              }
-              $('.tile').removeClass('selected');
-            }
+            $submit.prop('disabled', numSelected() < 4);
       });
 
     });
