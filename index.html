@@ -153,6 +153,9 @@ button:active {
         { category: 'fabrics',
           options: ['felt', 'cotton', 'denim', 'tweed', 'flannel', 'calico'] },
 
+        { category: 'potty language',
+          options: ['john', 'head', 'loo', 'pot', 'throne'] },
+
         { category: '_ candy',
           options: ['cotton', 'rock', 'hard', 'nose', 'john'] },
 
@@ -218,7 +221,7 @@ button:active {
       // Seed randomness
       const d = new Date();
       //Math.seedrandom(`..${d.getDate()}-${d.getFullYear()}-${d.getMonth()}`);
-      Math.seedrandom(`.....${d.getDate()}-${d.getFullYear()}-${d.getMonth()}`);
+      Math.seedrandom(`..${d.getDate()}-${d.getFullYear()}-${d.getMonth()}`);
 
       const $tiles = $('#remaining-tiles');
       const $done = $('#completed-rows');
@@ -251,8 +254,8 @@ button:active {
           i += 1;
         }
 
-        if ((d.getDate() == 23) && (d.getFullYear() == 2023) && (d.getMonth() == 6)) {
-          selectedGroups = groups.filter(g => ['friends', 'arizona cities', 'fantastical fauna', 'baby animals'].includes(g.category));
+        if ((d.getDate() == 25) && (d.getFullYear() == 2023) && (d.getMonth() == 6)) {
+          selectedGroups = groups.filter(g => ['cat coat colors', 'fabrics', '_ candy', 'potty language'].includes(g.category));
         }
 
         for (let group of selectedGroups) {
